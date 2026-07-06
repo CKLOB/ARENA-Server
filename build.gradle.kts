@@ -39,6 +39,8 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
+    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
