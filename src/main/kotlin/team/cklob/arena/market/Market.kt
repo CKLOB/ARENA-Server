@@ -52,8 +52,7 @@ interface SymbolRepository : JpaRepository<Symbol, Long>
 @Table(
     name = "price_snapshots",
     indexes = [
-        Index(name = "idx_price_snapshots_symbol_id", columnList = "symbol_id"),
-        Index(name = "idx_price_snapshots_snapshot_at", columnList = "snapshot_at"),
+        Index(name = "idx_price_snapshots_symbol_snapshot", columnList = "symbol_id, snapshot_at"),
     ],
 )
 class PriceSnapshot(

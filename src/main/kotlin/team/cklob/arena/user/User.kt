@@ -47,9 +47,9 @@ class User(
     var oauthProvider: OauthProvider,
     @Column(name = "oauth_provider_user_id", nullable = false, length = 255)
     var oauthProviderUserId: String,
-    @Column(name = "oauth_access_token", length = 1000)
+    @Column(name = "oauth_access_token", columnDefinition = "TEXT")
     var oauthAccessToken: String? = null,
-    @Column(name = "oauth_refresh_token", length = 1000)
+    @Column(name = "oauth_refresh_token", columnDefinition = "TEXT")
     var oauthRefreshToken: String? = null,
 ) {
     @Id
