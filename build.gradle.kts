@@ -47,6 +47,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.9.1")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
     testImplementation("io.mockk:mockk:1.13.13")
+    testRuntimeOnly("com.h2database:h2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
