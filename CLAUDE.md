@@ -18,8 +18,7 @@ Main backend for an AI mock investment battle platform. Users compete against AI
 
 `user` · `market` · `challenge` · `trading` · `portfolio` · `recommendation` (reaction logging) · `learning`
 
-- Follow **domain-based package structure**. Avoid layer-first structure (splitting into controller/service/repository at the top level).
-- Package convention: `team.cklob.arena.{domain}.{layer}`
+Follow [ARCHITECTURE.md](ARCHITECTURE.md) for the required `domain` and `global` package layout.
 
 ## Boundary with the FastAPI AI Service
 

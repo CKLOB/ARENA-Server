@@ -16,7 +16,7 @@ Kotlin, Spring Boot, Spring Data JPA, Spring Security, JWT, PostgreSQL, Redis, G
 
 `user`, `market`, `challenge`, `trading`, `portfolio`, `recommendation` (reaction logging), `learning`
 
-Packages are organized by **domain, not by layer**. Before adding new code, decide which domain it belongs to and place it in that package.
+Follow [ARCHITECTURE.md](ARCHITECTURE.md) for the required `domain` and `global` package layout. Before adding code, decide whether it belongs to a domain layer or a global concern and place it there.
 
 ## Boundary with the FastAPI AI Service (important)
 
