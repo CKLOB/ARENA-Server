@@ -1,4 +1,4 @@
-package team.cklob.arena.market
+package team.cklob.arena.domain.market
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

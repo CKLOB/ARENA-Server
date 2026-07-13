@@ -1,4 +1,4 @@
-package team.cklob.arena.user
+package team.cklob.arena.domain.user
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

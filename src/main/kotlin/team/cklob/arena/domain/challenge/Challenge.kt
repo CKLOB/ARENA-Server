@@ -1,4 +1,4 @@
-package team.cklob.arena.challenge
+package team.cklob.arena.domain.challenge
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -15,8 +15,8 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.springframework.data.jpa.repository.JpaRepository
-import team.cklob.arena.market.MarketType
-import team.cklob.arena.user.User
+import team.cklob.arena.domain.market.MarketType
+import team.cklob.arena.domain.user.User
 import java.math.BigDecimal
 import java.time.LocalDateTime
 

@@ -1,4 +1,4 @@
-package team.cklob.arena.recommendation
+package team.cklob.arena.domain.recommendation
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -14,8 +14,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.CreationTimestamp
 import org.springframework.data.jpa.repository.JpaRepository
-import team.cklob.arena.challenge.Challenge
-import team.cklob.arena.market.Symbol
+import team.cklob.arena.domain.challenge.Challenge
+import team.cklob.arena.domain.market.Symbol
 import java.math.BigDecimal
 import java.time.LocalDateTime
 

@@ -1,4 +1,4 @@
-package team.cklob.arena.trading
+package team.cklob.arena.domain.trading
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -16,7 +16,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.CreationTimestamp
 import org.springframework.data.jpa.repository.JpaRepository
-import team.cklob.arena.challenge.ChallengeParticipant
+import team.cklob.arena.domain.challenge.ChallengeParticipant
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
