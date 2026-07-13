@@ -28,6 +28,16 @@ class SecurityIntegrationTest(
         extension(SpringExtension)
 
         describe("공통 응답 및 보안 설정") {
+            it("Bearer가 아닌 Authorization 헤더는 공개 API를 차단하지 않는다") {
+                mockMvc.get("/auth/test") {
+                    header("Authorization", "Basic ignored")
+                    accept = MediaType.APPLICATION_JSON
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.code") { value("SUCCESS") }
+                }
+            }
+
             it("공개 API 응답을 공통 형식으로 감싼다") {
                 mockMvc.get("/auth/test") {
                     accept = MediaType.APPLICATION_JSON

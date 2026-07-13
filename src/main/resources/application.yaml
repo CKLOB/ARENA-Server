@@ -4,5 +4,6 @@ spring:
 
 security:
   jwt:
+    # Base64-encoded secret with at least 32 bytes before encoding.
     secret: ${JWT_SECRET}
     access-token-expiration: PT15M

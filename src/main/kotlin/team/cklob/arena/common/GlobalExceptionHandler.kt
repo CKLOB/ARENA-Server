@@ -23,13 +23,11 @@ class GlobalExceptionHandler {
         response(exception.errorCode, exception.message ?: exception.errorCode.message)
 
     @ExceptionHandler(MethodArgumentNotValidException::class, BindException::class)
-    fun handleValidationException(exception: Exception): ResponseEntity<CommonApiResponse<Any>> {
+    fun handleValidationException(exception: BindException): ResponseEntity<CommonApiResponse<Any>> {
         val fieldErrors =
-            when (exception) {
-                is MethodArgumentNotValidException -> exception.bindingResult.fieldErrors
-                is BindException -> exception.bindingResult.fieldErrors
-                else -> emptyList()
-            }.map { FieldErrorDetail(field = it.field, reason = it.defaultMessage ?: "유효하지 않은 값입니다.") }
+            exception.bindingResult.fieldErrors.map {
+                FieldErrorDetail(field = it.field, reason = it.defaultMessage ?: "유효하지 않은 값입니다.")
+            }
 
         return response(
             errorCode = CommonErrorCode.INVALID_REQUEST,

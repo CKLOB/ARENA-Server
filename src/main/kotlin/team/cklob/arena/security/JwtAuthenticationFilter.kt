@@ -20,18 +20,19 @@ class JwtAuthenticationFilter(
         filterChain: FilterChain,
     ) {
         val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
-        if (authorization == null) {
+        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
             filterChain.doFilter(request, response)
             return
         }
 
-        if (!authorization.startsWith(BEARER_PREFIX) || authorization.length == BEARER_PREFIX.length) {
+        val token = authorization.removePrefix(BEARER_PREFIX)
+        if (token.isBlank()) {
             securityErrorHandler.write(response, SecurityErrorCode.INVALID_TOKEN)
             return
         }
 
         try {
-            val userId = jwtTokenProvider.getUserId(authorization.removePrefix(BEARER_PREFIX))
+            val userId = jwtTokenProvider.getUserId(token)
             val authentication = UsernamePasswordAuthenticationToken(userId, null, emptyList())
             SecurityContextHolder.getContext().authentication = authentication
             filterChain.doFilter(request, response)
