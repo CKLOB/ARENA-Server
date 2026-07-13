@@ -32,7 +32,7 @@ class GlobalExceptionHandler {
             }.map { FieldErrorDetail(field = it.field, reason = it.defaultMessage ?: "유효하지 않은 값입니다.") }
 
         return response(
-            errorCode = ErrorCode.INVALID_REQUEST,
+            errorCode = CommonErrorCode.INVALID_REQUEST,
             data = ValidationErrorData(fieldErrors),
         )
     }
@@ -40,7 +40,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException::class)
     fun handleConstraintViolation(exception: ConstraintViolationException): ResponseEntity<CommonApiResponse<Any>> =
         response(
-            errorCode = ErrorCode.INVALID_REQUEST,
+            errorCode = CommonErrorCode.INVALID_REQUEST,
             data =
                 ValidationErrorData(
                     exception.constraintViolations.map {
@@ -53,27 +53,29 @@ class GlobalExceptionHandler {
     fun handleUnreadableMessage(exception: HttpMessageNotReadableException): ResponseEntity<CommonApiResponse<Any>> =
         response(
             if (exception.cause is InvalidFormatException) {
-                ErrorCode.INVALID_TYPE_VALUE
+                CommonErrorCode.INVALID_TYPE_VALUE
             } else {
-                ErrorCode.MALFORMED_JSON
+                CommonErrorCode.MALFORMED_JSON
             },
         )
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleTypeMismatch(exception: MethodArgumentTypeMismatchException): ResponseEntity<CommonApiResponse<Any>> =
-        response(ErrorCode.INVALID_TYPE_VALUE)
+        response(CommonErrorCode.INVALID_TYPE_VALUE)
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
     fun handleMethodNotSupported(exception: HttpRequestMethodNotSupportedException): ResponseEntity<CommonApiResponse<Any>> =
-        response(ErrorCode.METHOD_NOT_ALLOWED)
+        response(CommonErrorCode.METHOD_NOT_ALLOWED)
 
     @ExceptionHandler(NoHandlerFoundException::class, NoResourceFoundException::class)
-    fun handleNotFound(exception: Exception): ResponseEntity<CommonApiResponse<Any>> = response(ErrorCode.RESOURCE_NOT_FOUND)
+    fun handleNotFound(exception: Exception): ResponseEntity<CommonApiResponse<Any>> {
+        return response(CommonErrorCode.RESOURCE_NOT_FOUND)
+    }
 
     @ExceptionHandler(Exception::class)
     fun handleUnexpectedException(exception: Exception): ResponseEntity<CommonApiResponse<Any>> {
         log.error("Unhandled exception", exception)
-        return response(ErrorCode.INTERNAL_SERVER_ERROR)
+        return response(CommonErrorCode.INTERNAL_SERVER_ERROR)
     }
 
     private fun response(

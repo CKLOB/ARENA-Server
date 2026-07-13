@@ -18,7 +18,7 @@ class SecurityErrorHandler(
         response: HttpServletResponse,
         authException: org.springframework.security.core.AuthenticationException,
     ) {
-        write(response, ErrorCode.UNAUTHORIZED)
+        write(response, SecurityErrorCode.UNAUTHORIZED)
     }
 
     override fun handle(
@@ -26,7 +26,7 @@ class SecurityErrorHandler(
         response: HttpServletResponse,
         accessDeniedException: AccessDeniedException,
     ) {
-        write(response, ErrorCode.FORBIDDEN)
+        write(response, SecurityErrorCode.FORBIDDEN)
     }
 
     fun write(

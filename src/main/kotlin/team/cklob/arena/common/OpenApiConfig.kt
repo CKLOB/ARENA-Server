@@ -23,8 +23,8 @@ class OpenApiConfig {
                 ).addSchemas(
                     "CommonErrorResponse",
                     ObjectSchema()
-                        .addProperty("code", StringSchema().example(ErrorCode.INVALID_REQUEST.name))
-                        .addProperty("message", StringSchema().example(ErrorCode.INVALID_REQUEST.message))
+                        .addProperty("code", StringSchema().example(CommonErrorCode.INVALID_REQUEST.code))
+                        .addProperty("message", StringSchema().example(CommonErrorCode.INVALID_REQUEST.message))
                         .addProperty("data", ObjectSchema().nullable(true)),
                 ),
         )

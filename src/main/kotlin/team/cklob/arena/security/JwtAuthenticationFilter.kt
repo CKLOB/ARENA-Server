@@ -9,7 +9,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.OncePerRequestFilter
-import team.cklob.arena.common.ErrorCode
 
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
@@ -27,7 +26,7 @@ class JwtAuthenticationFilter(
         }
 
         if (!authorization.startsWith(BEARER_PREFIX) || authorization.length == BEARER_PREFIX.length) {
-            securityErrorHandler.write(response, ErrorCode.INVALID_TOKEN)
+            securityErrorHandler.write(response, SecurityErrorCode.INVALID_TOKEN)
             return
         }
 
@@ -37,11 +36,11 @@ class JwtAuthenticationFilter(
             SecurityContextHolder.getContext().authentication = authentication
             filterChain.doFilter(request, response)
         } catch (exception: ExpiredJwtException) {
-            securityErrorHandler.write(response, ErrorCode.EXPIRED_TOKEN)
+            securityErrorHandler.write(response, SecurityErrorCode.EXPIRED_TOKEN)
         } catch (exception: JwtException) {
-            securityErrorHandler.write(response, ErrorCode.INVALID_TOKEN)
+            securityErrorHandler.write(response, SecurityErrorCode.INVALID_TOKEN)
         } catch (exception: IllegalArgumentException) {
-            securityErrorHandler.write(response, ErrorCode.INVALID_TOKEN)
+            securityErrorHandler.write(response, SecurityErrorCode.INVALID_TOKEN)
         }
     }
 
