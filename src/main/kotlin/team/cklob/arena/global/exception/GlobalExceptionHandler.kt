@@ -1,6 +1,8 @@
 package team.cklob.arena.global.exception
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
+import com.fasterxml.jackson.module.kotlin.KotlinInvalidNullException
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -52,13 +54,22 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleUnreadableMessage(exception: HttpMessageNotReadableException): ResponseEntity<CommonApiResponse<Any>> =
-        response(
-            if (exception.cause is InvalidFormatException) {
-                CommonErrorCode.INVALID_TYPE_VALUE
-            } else {
-                CommonErrorCode.MALFORMED_JSON
-            },
-        )
+        when (val cause = exception.cause) {
+            is UnrecognizedPropertyException ->
+                response(
+                    errorCode = CommonErrorCode.UNKNOWN_JSON_FIELD,
+                    data = ValidationErrorData(listOf(FieldErrorDetail(cause.propertyName, "알 수 없는 필드입니다."))),
+                )
+
+            is KotlinInvalidNullException ->
+                response(
+                    errorCode = CommonErrorCode.INVALID_REQUEST,
+                    data = ValidationErrorData(listOf(FieldErrorDetail(cause.kotlinPropertyName, "필수 입력 값입니다."))),
+                )
+
+            is InvalidFormatException -> response(CommonErrorCode.INVALID_TYPE_VALUE)
+            else -> response(CommonErrorCode.MALFORMED_JSON)
+        }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleTypeMismatch(exception: MethodArgumentTypeMismatchException): ResponseEntity<CommonApiResponse<Any>> =
