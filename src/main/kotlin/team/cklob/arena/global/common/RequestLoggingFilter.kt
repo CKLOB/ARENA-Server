@@ -16,7 +16,10 @@ import java.util.UUID
 class RequestLoggingFilter : OncePerRequestFilter() {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean = EXCLUDED_PATH_PREFIXES.any { request.requestURI.startsWith(it) }
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val path = request.requestURI.removePrefix(request.contextPath)
+        return EXCLUDED_PATH_PREFIXES.any { path.startsWith(it) }
+    }
 
     override fun doFilterInternal(
         request: HttpServletRequest,

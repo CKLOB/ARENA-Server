@@ -1,6 +1,7 @@
 package team.cklob.arena.global.response
 
 import org.springframework.core.MethodParameter
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageConverter
@@ -17,6 +18,7 @@ class CommonResponseAdvice : ResponseBodyAdvice<Any> {
     ): Boolean =
         returnType.parameterType != String::class.java &&
             returnType.parameterType != ByteArray::class.java &&
+            !Resource::class.java.isAssignableFrom(returnType.parameterType) &&
             !ResponseEntity::class.java.isAssignableFrom(returnType.parameterType)
 
     override fun beforeBodyWrite(

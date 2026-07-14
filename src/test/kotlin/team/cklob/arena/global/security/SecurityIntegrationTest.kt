@@ -9,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -109,6 +111,17 @@ class SecurityIntegrationTest(
                 }
             }
 
+            it("Kotlin 필수 필드 누락을 필드 오류로 반환한다") {
+                mockMvc.post("/auth/test") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = "{}"
+                }.andExpect {
+                    status { isBadRequest() }
+                    jsonPath("$.code") { value("INVALID_REQUEST") }
+                    jsonPath("$.data.fieldErrors[0].field") { value("name") }
+                }
+            }
+
             it("알 수 없는 JSON 필드를 요청 오류로 반환한다") {
                 mockMvc.post("/auth/test") {
                     contentType = MediaType.APPLICATION_JSON
@@ -134,6 +147,25 @@ class SecurityIntegrationTest(
                     status { isOk() }
                 }
             }
+
+            it("컨텍스트 경로가 있는 OpenAPI 요청은 로깅에서 제외한다") {
+                val result =
+                    mockMvc
+                        .get("/api/v3/api-docs") {
+                            contextPath = "/api"
+                        }.andExpect {
+                            status { isOk() }
+                        }.andReturn()
+
+                result.response.getHeader(RequestLoggingFilter.REQUEST_ID_HEADER) shouldBe null
+            }
+
+            it("Resource 응답은 공통 응답으로 감싸지 않는다") {
+                mockMvc.get("/auth/resource").andExpect {
+                    status { isOk() }
+                    content { string("resource") }
+                }
+            }
         }
     }) {
     override fun extensions() = listOf(SpringExtension)
@@ -155,6 +187,9 @@ class SecurityIntegrationTest(
 
         @GetMapping("/auth/time")
         fun time() = mapOf("createdAt" to LocalDateTime.of(2026, 1, 2, 3, 4, 5))
+
+        @GetMapping("/auth/resource")
+        fun resource(): Resource = ByteArrayResource("resource".toByteArray())
     }
 
     data class TestRequest(
