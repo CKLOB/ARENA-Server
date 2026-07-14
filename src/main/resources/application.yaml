@@ -2,6 +2,12 @@ spring:
   application:
     name: arena
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 security:
   jwt:
     # Base64-encoded secret with at least 32 bytes before encoding.

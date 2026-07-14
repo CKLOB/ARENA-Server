@@ -16,6 +16,7 @@ class CommonResponseAdvice : ResponseBodyAdvice<Any> {
         converterType: Class<out HttpMessageConverter<*>>,
     ): Boolean =
         returnType.parameterType != String::class.java &&
+            returnType.parameterType != ByteArray::class.java &&
             !ResponseEntity::class.java.isAssignableFrom(returnType.parameterType)
 
     override fun beforeBodyWrite(

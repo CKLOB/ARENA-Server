@@ -2,6 +2,7 @@ package team.cklob.arena.global.security
 
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import team.cklob.arena.global.common.RequestLoggingFilter
+import java.time.LocalDateTime
+import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,6 +32,22 @@ class SecurityIntegrationTest(
         extension(SpringExtension)
 
         describe("공통 응답 및 보안 설정") {
+            it("서버 생성 request ID를 응답 헤더에 반환한다") {
+                val result =
+                    mockMvc
+                        .get("/auth/test") {
+                            header(RequestLoggingFilter.REQUEST_ID_HEADER, "client-request-id")
+                            accept = MediaType.APPLICATION_JSON
+                        }.andExpect {
+                            status { isOk() }
+                            header { exists(RequestLoggingFilter.REQUEST_ID_HEADER) }
+                        }.andReturn()
+
+                val requestId = result.response.getHeader(RequestLoggingFilter.REQUEST_ID_HEADER)
+                (requestId == "client-request-id") shouldBe false
+                runCatching { UUID.fromString(requireNotNull(requestId)) }.isSuccess shouldBe true
+            }
+
             it("Bearer가 아닌 Authorization 헤더는 공개 API를 차단하지 않는다") {
                 mockMvc.get("/auth/test") {
                     header("Authorization", "Basic ignored")
@@ -88,6 +108,32 @@ class SecurityIntegrationTest(
                     jsonPath("$.data.fieldErrors[0].field") { value("name") }
                 }
             }
+
+            it("알 수 없는 JSON 필드를 요청 오류로 반환한다") {
+                mockMvc.post("/auth/test") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"name":"arena","unknown":true}"""
+                }.andExpect {
+                    status { isBadRequest() }
+                    jsonPath("$.code") { value("UNKNOWN_JSON_FIELD") }
+                    jsonPath("$.data.fieldErrors[0].field") { value("unknown") }
+                }
+            }
+
+            it("시간 값을 ISO-8601 문자열로 직렬화한다") {
+                mockMvc.get("/auth/time") {
+                    accept = MediaType.APPLICATION_JSON
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.data.createdAt") { value("2026-01-02T03:04:05") }
+                }
+            }
+
+            it("OpenAPI 문서는 인증 없이 접근할 수 있다") {
+                mockMvc.get("/v3/api-docs").andExpect {
+                    status { isOk() }
+                }
+            }
         }
     }) {
     override fun extensions() = listOf(SpringExtension)
@@ -106,6 +152,9 @@ class SecurityIntegrationTest(
         fun validate(
             @Valid @RequestBody request: TestRequest,
         ) = mapOf("name" to request.name)
+
+        @GetMapping("/auth/time")
+        fun time() = mapOf("createdAt" to LocalDateTime.of(2026, 1, 2, 3, 4, 5))
     }
 
     data class TestRequest(
