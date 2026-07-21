@@ -12,4 +12,6 @@ data class JwtProperties(
     @field:NotBlank
     val secret: String,
     val accessTokenExpiration: Duration,
+    val refreshTokenExpiration: Duration = Duration.ofDays(14),
+    val onboardingTokenExpiration: Duration = Duration.ofMinutes(10),
 )

@@ -20,6 +20,22 @@ Main backend for an AI mock investment battle platform. Users compete against AI
 
 Follow [ARCHITECTURE.md](ARCHITECTURE.md) for the required `domain` and `global` package layout.
 
+### File and Package Rules
+
+Use the following structure for each domain. Do not place multiple API endpoints, enums, DTOs, or use cases in one file.
+
+```text
+domain/{module}/presentation/{controller,request,response}
+domain/{module}/application/{impl,result}
+domain/{module}/domain/{entity,repository,type}
+domain/{module}/infrastructure/{dto,property}
+```
+
+- One HTTP endpoint per controller file; controllers only validate and delegate.
+- One `data class`, enum, JPA entity, and repository interface per file, in the package matching its role.
+- Each application use case has an interface in `application` and one `@Service` implementation in `application.impl`.
+- Name an application service's public use-case method `execute`. Use descriptive method names for non-service collaborators such as repositories and external clients.
+
 ## Boundary with the FastAPI AI Service
 
 - This repo does not implement trading decision or recommendation generation logic. It calls the FastAPI service over HTTP and only processes the result (action, recommended symbol, probability).

@@ -1,4 +1,4 @@
-package team.cklob.arena.domain.user
+package team.cklob.arena.domain.user.domain.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -10,20 +10,9 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.CreationTimestamp
-import org.springframework.data.jpa.repository.JpaRepository
+import team.cklob.arena.domain.user.domain.type.InvestmentExperience
+import team.cklob.arena.domain.user.domain.type.OauthProvider
 import java.time.LocalDateTime
-
-enum class InvestmentExperience {
-    BEGINNER,
-    INTERMEDIATE,
-    ADVANCED,
-}
-
-enum class OauthProvider {
-    GOOGLE,
-    KAKAO,
-    APPLE,
-}
 
 @Entity
 @Table(
@@ -60,5 +49,3 @@ class User(
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime? = null
 }
-
-interface UserRepository : JpaRepository<User, Long>
