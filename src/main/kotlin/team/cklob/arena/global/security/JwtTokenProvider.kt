@@ -17,25 +17,50 @@ class JwtTokenProvider(
     fun createRefreshToken(
         userId: Long,
         sessionId: Long,
-    ): String = createToken(userId.toString(), JwtPurpose.REFRESH, jwtProperties.refreshTokenExpiration, mapOf(REFRESH_SESSION_ID_CLAIM to sessionId))
+    ): String =
+        createToken(
+            userId.toString(),
+            JwtPurpose.REFRESH,
+            jwtProperties.refreshTokenExpiration,
+            mapOf(REFRESH_SESSION_ID_CLAIM to sessionId),
+        )
 
-    fun createOnboardingToken(subject: String): String = createToken(subject, JwtPurpose.ONBOARDING, jwtProperties.onboardingTokenExpiration)
+    fun createOnboardingToken(subject: String): String =
+        createToken(
+            subject,
+            JwtPurpose.ONBOARDING,
+            jwtProperties.onboardingTokenExpiration,
+        )
 
     fun getUserId(token: String): Long = getUserId(token, JwtPurpose.ACCESS)
 
-    fun getUserId(token: String, expectedPurpose: JwtPurpose): Long = getSubject(token, expectedPurpose).toLong()
+    fun getUserId(
+        token: String,
+        expectedPurpose: JwtPurpose,
+    ): Long = getSubject(token, expectedPurpose).toLong()
 
-    fun getSubject(token: String, expectedPurpose: JwtPurpose): String = getClaims(token, expectedPurpose).subject
+    fun getSubject(
+        token: String,
+        expectedPurpose: JwtPurpose,
+    ): String = getClaims(token, expectedPurpose).subject
 
     fun getRefreshSessionId(token: String): Long = (getClaims(token, JwtPurpose.REFRESH)[REFRESH_SESSION_ID_CLAIM] as Number).toLong()
 
-    private fun getClaims(token: String, expectedPurpose: JwtPurpose): Claims {
+    private fun getClaims(
+        token: String,
+        expectedPurpose: JwtPurpose,
+    ): Claims {
         val claims = parseClaims(token)
         if (claims[JWT_PURPOSE_CLAIM] != expectedPurpose.claimValue) throw UnsupportedJwtException("Unexpected JWT purpose")
         return claims
     }
 
-    private fun createToken(subject: String, purpose: JwtPurpose, expiration: java.time.Duration, claims: Map<String, Any> = emptyMap()): String {
+    private fun createToken(
+        subject: String,
+        purpose: JwtPurpose,
+        expiration: java.time.Duration,
+        claims: Map<String, Any> = emptyMap(),
+    ): String {
         val now = Instant.now()
         return Jwts.builder().subject(subject).claim(JWT_PURPOSE_CLAIM, purpose.claimValue).claims(claims)
             .issuedAt(Date.from(now)).expiration(Date.from(now.plus(expiration))).signWith(signingKey()).compact()

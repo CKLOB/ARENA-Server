@@ -3,6 +3,8 @@ package team.cklob.arena.global.security
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -24,7 +26,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import team.cklob.arena.global.common.RequestLoggingFilter
 import team.cklob.arena.domain.user.domain.entity.RefreshSession
 import team.cklob.arena.domain.user.domain.entity.User
 import team.cklob.arena.domain.user.domain.repository.RefreshSessionRepository
@@ -32,12 +33,10 @@ import team.cklob.arena.domain.user.domain.repository.UserRepository
 import team.cklob.arena.domain.user.domain.type.ClientPlatform
 import team.cklob.arena.domain.user.domain.type.InvestmentExperience
 import team.cklob.arena.domain.user.domain.type.OauthProvider
-import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
 import team.cklob.arena.domain.user.infrastructure.OAuthProviderClient
+import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
+import team.cklob.arena.global.common.RequestLoggingFilter
 import team.cklob.arena.global.exception.ExpectedException
-import team.cklob.arena.global.security.RefreshTokenHasher
-import io.mockk.every
-import io.mockk.mockk
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
@@ -167,7 +166,14 @@ class SecurityIntegrationTest(
             }
 
             it("기존 OAuth 사용자는 access와 refresh token을 받는다") {
-                userRepository.save(User(nickname = "arena", investmentExperience = InvestmentExperience.BEGINNER, oauthProvider = OauthProvider.GOOGLE, oauthProviderUserId = "existing"))
+                userRepository.save(
+                    User(
+                        nickname = "arena",
+                        investmentExperience = InvestmentExperience.BEGINNER,
+                        oauthProvider = OauthProvider.GOOGLE,
+                        oauthProviderUserId = "existing",
+                    ),
+                )
 
                 mockMvc.post("/auth/login/GOOGLE") {
                     contentType = MediaType.APPLICATION_JSON
@@ -196,11 +202,12 @@ class SecurityIntegrationTest(
 
             it("온보딩을 완료하면 access와 refresh token을 반환하고 사용자를 저장한다") {
                 val providerUserId = UUID.randomUUID().toString()
+                val onboardingToken = jwtTokenProvider.createOnboardingToken("KAKAO:$providerUserId")
 
                 mockMvc.post("/auth/onboarding") {
                     contentType = MediaType.APPLICATION_JSON
                     content =
-                        """{"onboardingToken":"${jwtTokenProvider.createOnboardingToken("KAKAO:$providerUserId")}","nickname":"arena","investmentExperience":"BEGINNER"}"""
+                        """{"onboardingToken":"$onboardingToken","nickname":"arena","investmentExperience":"BEGINNER"}"""
                 }.andExpect {
                     status { isOk() }
                     jsonPath("$.data.accessToken") { exists() }
@@ -244,7 +251,15 @@ class SecurityIntegrationTest(
             }
 
             it("저장된 refresh JWT로 토큰을 재발급하면 이전 session을 폐기한다") {
-                val user = userRepository.save(User(nickname = "arena", investmentExperience = InvestmentExperience.BEGINNER, oauthProvider = OauthProvider.GOOGLE, oauthProviderUserId = UUID.randomUUID().toString()))
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "arena",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
                 val session = refreshSessionRepository.save(RefreshSession(user, "pending", LocalDateTime.now().plusDays(1)))
                 val refreshToken = jwtTokenProvider.createRefreshToken(requireNotNull(user.id), requireNotNull(session.id))
                 session.tokenHash = RefreshTokenHasher.hash(refreshToken)
@@ -263,7 +278,15 @@ class SecurityIntegrationTest(
             }
 
             it("로그아웃은 현재 refresh session만 폐기하고 204를 반환한다") {
-                val user = userRepository.save(User(nickname = "arena", investmentExperience = InvestmentExperience.BEGINNER, oauthProvider = OauthProvider.GOOGLE, oauthProviderUserId = UUID.randomUUID().toString()))
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "arena",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
                 val current = refreshSessionRepository.save(RefreshSession(user, "pending-current", LocalDateTime.now().plusDays(1)))
                 val other = refreshSessionRepository.save(RefreshSession(user, "b".repeat(64), LocalDateTime.now().plusDays(1)))
                 val refreshToken = jwtTokenProvider.createRefreshToken(requireNotNull(user.id), requireNotNull(current.id))

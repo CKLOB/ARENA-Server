@@ -22,16 +22,18 @@ class GoogleOAuthProviderClientTest : DescribeSpec({
     it("Google authorization code를 token과 userinfo API로 교환한다") {
         val builder = RestClient.builder()
         val server = MockRestServiceServer.bindTo(builder).build()
-        val client = GoogleOAuthProviderClient(
-            OAuthProperties(
-                google = OAuthProviderProperties(
-                    clientId = "google-client",
-                    clientSecret = "google-secret",
-                    redirectUris = mapOf(ClientPlatform.WEB to "https://web.example.com/oauth/google"),
+        val client =
+            GoogleOAuthProviderClient(
+                OAuthProperties(
+                    google =
+                        OAuthProviderProperties(
+                            clientId = "google-client",
+                            clientSecret = "google-secret",
+                            redirectUris = mapOf(ClientPlatform.WEB to "https://web.example.com/oauth/google"),
+                        ),
                 ),
-            ),
-            builder,
-        )
+                builder,
+            )
         server.expect(ExpectedCount.once(), requestTo("https://oauth2.googleapis.com/token"))
             .andExpect(method(HttpMethod.POST))
             .andExpect(header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE))
@@ -42,7 +44,12 @@ class GoogleOAuthProviderClientTest : DescribeSpec({
         server.expect(ExpectedCount.once(), requestTo("https://openidconnect.googleapis.com/v1/userinfo"))
             .andExpect(method(HttpMethod.GET))
             .andExpect(header("Authorization", "Bearer google-access-token"))
-            .andRespond(withSuccess("""{"sub":"google-user-id","email":"user@example.com","picture":"https://example.com/profile.png"}""", MediaType.APPLICATION_JSON))
+            .andRespond(
+                withSuccess(
+                    """{"sub":"google-user-id","email":"user@example.com","picture":"https://example.com/profile.png"}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
 
         val profile = client.authenticate("code", null, ClientPlatform.WEB)
 

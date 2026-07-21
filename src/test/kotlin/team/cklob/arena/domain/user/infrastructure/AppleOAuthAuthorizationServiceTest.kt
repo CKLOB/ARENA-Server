@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.web.util.UriComponentsBuilder
-import team.cklob.arena.domain.user.domain.type.ClientPlatform
 import team.cklob.arena.domain.user.infrastructure.dto.AppleOAuthState
 import team.cklob.arena.domain.user.infrastructure.property.AppleOAuthProperties
 import team.cklob.arena.domain.user.infrastructure.property.OAuthProperties
@@ -17,10 +16,11 @@ class AppleOAuthAuthorizationServiceTest : DescribeSpec({
         val service =
             AppleOAuthAuthorizationServiceImpl(
                 OAuthProperties(
-                    apple = AppleOAuthProperties(
-                        androidClientId = "apple-services-id",
-                        androidRedirectUri = "https://web.example.com/oauth/apple",
-                    ),
+                    apple =
+                        AppleOAuthProperties(
+                            androidClientId = "apple-services-id",
+                            androidRedirectUri = "https://web.example.com/oauth/apple",
+                        ),
                 ),
                 stateStore,
             )

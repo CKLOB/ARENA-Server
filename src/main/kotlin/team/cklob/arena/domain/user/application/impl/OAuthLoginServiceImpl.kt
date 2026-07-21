@@ -36,9 +36,13 @@ class OAuthLoginServiceImpl(
         state: String?,
     ): OAuthLoginResult {
         val profile = clientResolver.resolve(provider).authenticate(authorizationCode, accessToken, platform, state)
-        val user = userRepository.findByOauthProviderAndOauthProviderUserId(provider, profile.providerUserId)
-            ?: return NewUserLoginResult(jwtTokenProvider.createOnboardingToken("${provider.name}:${profile.providerUserId}"))
-        val session = refreshSessionRepository.save(RefreshSession(user, "pending", LocalDateTime.now().plus(jwtProperties.refreshTokenExpiration)))
+        val user =
+            userRepository.findByOauthProviderAndOauthProviderUserId(provider, profile.providerUserId)
+                ?: return NewUserLoginResult(jwtTokenProvider.createOnboardingToken("${provider.name}:${profile.providerUserId}"))
+        val session =
+            refreshSessionRepository.save(
+                RefreshSession(user, "pending", LocalDateTime.now().plus(jwtProperties.refreshTokenExpiration)),
+            )
         val refreshToken = jwtTokenProvider.createRefreshToken(requireNotNull(user.id), requireNotNull(session.id))
         session.tokenHash = RefreshTokenHasher.hash(refreshToken)
         refreshTokenStore.save(requireNotNull(session.id), session.tokenHash, session.expiresAt)

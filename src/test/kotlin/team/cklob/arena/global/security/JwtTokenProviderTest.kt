@@ -1,11 +1,11 @@
 package team.cklob.arena.global.security
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.jsonwebtoken.UnsupportedJwtException
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.time.Duration
 import java.util.Base64
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
 class JwtTokenProviderTest : DescribeSpec({
     val tokenProvider =
@@ -26,9 +26,10 @@ class JwtTokenProviderTest : DescribeSpec({
         it("refresh token을 access token으로 사용하면 거부한다") {
             val refreshToken = tokenProvider.createRefreshToken(1L, 10L)
 
-            val exception = runCatching {
-                tokenProvider.getUserId(refreshToken)
-            }.exceptionOrNull()
+            val exception =
+                runCatching {
+                    tokenProvider.getUserId(refreshToken)
+                }.exceptionOrNull()
 
             (exception is UnsupportedJwtException) shouldBe true
         }
@@ -48,9 +49,10 @@ class JwtTokenProviderTest : DescribeSpec({
         }
 
         it("access token에서는 refresh session ID를 읽을 수 없다") {
-            val exception = runCatching {
-                tokenProvider.getRefreshSessionId(tokenProvider.createAccessToken(1L))
-            }.exceptionOrNull()
+            val exception =
+                runCatching {
+                    tokenProvider.getRefreshSessionId(tokenProvider.createAccessToken(1L))
+                }.exceptionOrNull()
 
             (exception is UnsupportedJwtException) shouldBe true
         }
@@ -71,7 +73,8 @@ class JwtTokenProviderTest : DescribeSpec({
 
             tokens.forEach { (token, purpose) ->
                 JwtPurpose.entries.filter { it != purpose }.forEach { expectedPurpose ->
-                    (runCatching { tokenProvider.getSubject(token, expectedPurpose) }.exceptionOrNull() is UnsupportedJwtException) shouldBe true
+                    val exception = runCatching { tokenProvider.getSubject(token, expectedPurpose) }.exceptionOrNull()
+                    (exception is UnsupportedJwtException) shouldBe true
                 }
             }
         }

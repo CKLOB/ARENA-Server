@@ -22,7 +22,9 @@ class LogoutController(
         ApiResponse(responseCode = "204", description = "현재 refresh session 폐기"),
         ApiResponse(responseCode = "401", description = "유효하지 않거나 폐기된 refresh token"),
     )
-    fun execute(@RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String): ResponseEntity<Void> {
+    fun execute(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
+    ): ResponseEntity<Void> {
         logoutService.execute(authorization.removeBearerPrefix())
         return ResponseEntity.noContent().build()
     }

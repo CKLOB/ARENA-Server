@@ -2,7 +2,6 @@ package team.cklob.arena.domain.user.infrastructure
 
 import org.springframework.stereotype.Service
 import org.springframework.web.util.UriComponentsBuilder
-import team.cklob.arena.domain.user.domain.type.ClientPlatform
 import team.cklob.arena.domain.user.infrastructure.property.OAuthProperties
 import team.cklob.arena.global.exception.ExpectedException
 import team.cklob.arena.global.security.SecurityErrorCode
@@ -14,10 +13,12 @@ class AppleOAuthAuthorizationServiceImpl(
 ) : AppleOAuthAuthorizationService {
     override fun execute(): String {
         val apple = properties.apple
-        val clientId = apple.androidClientId.takeIf(String::isNotBlank)
-            ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
-        val redirectUri = apple.androidRedirectUri.takeIf(String::isNotBlank)
-            ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
+        val clientId =
+            apple.androidClientId.takeIf(String::isNotBlank)
+                ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
+        val redirectUri =
+            apple.androidRedirectUri.takeIf(String::isNotBlank)
+                ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
         val state = stateStore.create()
         return UriComponentsBuilder.fromUriString(AUTHORIZE_URI)
             .queryParam("response_type", "code")

@@ -25,7 +25,12 @@ class LogoutServiceImpl(
         val session = refreshSessionRepository.findById(sessionId).orElseThrow { ExpectedException(SecurityErrorCode.INVALID_TOKEN) }
         val tokenHash = RefreshTokenHasher.hash(refreshToken)
         val cachedTokenHash = refreshTokenStore.findTokenHash(sessionId)
-        if (session.user.id != userId || session.tokenHash != tokenHash || (cachedTokenHash != null && cachedTokenHash != tokenHash) || session.revokedAt != null) {
+        if (
+            session.user.id != userId ||
+            session.tokenHash != tokenHash ||
+            (cachedTokenHash != null && cachedTokenHash != tokenHash) ||
+            session.revokedAt != null
+        ) {
             throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
         }
         refreshTokenStore.save(sessionId, tokenHash, session.expiresAt)

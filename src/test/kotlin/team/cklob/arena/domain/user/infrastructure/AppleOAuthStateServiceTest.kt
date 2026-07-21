@@ -7,7 +7,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.ValueOperations
-import team.cklob.arena.domain.user.infrastructure.RedisAppleOAuthStateStore
 import team.cklob.arena.global.exception.ExpectedException
 import java.security.MessageDigest
 import java.time.Duration
@@ -30,7 +29,8 @@ class AppleOAuthStateServiceTest : DescribeSpec({
         val result = service.create()
 
         key.captured shouldBe "oauth:apple:pkce:${result.state}"
-        Base64.getUrlEncoder().withoutPadding().encodeToString(MessageDigest.getInstance("SHA-256").digest(verifier.captured.toByteArray())) shouldBe result.challenge
+        val digest = MessageDigest.getInstance("SHA-256").digest(verifier.captured.toByteArray())
+        Base64.getUrlEncoder().withoutPadding().encodeToString(digest) shouldBe result.challenge
     }
 
     it("일치하는 state의 verifier를 한 번만 소비한다") {

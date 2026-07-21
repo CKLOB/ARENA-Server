@@ -26,8 +26,17 @@ class OAuthLoginController(
         ApiResponse(responseCode = "401", description = "유효하지 않은 OAuth credential"),
         ApiResponse(responseCode = "403", description = "지원하지 않는 provider"),
     )
-    fun execute(@PathVariable provider: String, @Valid @RequestBody request: OAuthLoginRequest): OAuthLoginResult =
-        oauthLoginService.execute(provider.toOauthProvider(), request.authorizationCode, request.accessToken, request.platform, request.state)
+    fun execute(
+        @PathVariable provider: String,
+        @Valid @RequestBody request: OAuthLoginRequest,
+    ): OAuthLoginResult =
+        oauthLoginService.execute(
+            provider.toOauthProvider(),
+            request.authorizationCode,
+            request.accessToken,
+            request.platform,
+            request.state,
+        )
 
     private fun String.toOauthProvider(): OauthProvider =
         OauthProvider.entries.find { it.name.equals(this, ignoreCase = true) }

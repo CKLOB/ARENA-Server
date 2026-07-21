@@ -9,7 +9,11 @@ import java.time.LocalDateTime
 class RedisRefreshTokenStore(
     private val redisTemplate: StringRedisTemplate,
 ) : RefreshTokenStore {
-    override fun save(sessionId: Long, tokenHash: String, expiresAt: LocalDateTime) {
+    override fun save(
+        sessionId: Long,
+        tokenHash: String,
+        expiresAt: LocalDateTime,
+    ) {
         val ttl = Duration.between(LocalDateTime.now(), expiresAt)
         if (!ttl.isNegative && !ttl.isZero) {
             redisTemplate.opsForValue().set(key(sessionId), tokenHash, ttl)

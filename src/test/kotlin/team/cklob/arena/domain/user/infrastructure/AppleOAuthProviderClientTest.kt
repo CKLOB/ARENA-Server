@@ -88,7 +88,9 @@ class AppleOAuthProviderClientTest : DescribeSpec({
             "-----BEGIN PRIVATE KEY-----\n${Base64.getMimeEncoder().encodeToString(encoded)}\n-----END PRIVATE KEY-----"
 
         private fun jwkSet(key: RSAPublicKey): String =
-            """{"keys":[{"kid":"apple-jwk-id","kty":"RSA","n":"${base64Unsigned(key.modulus.toByteArray())}","e":"${base64Unsigned(key.publicExponent.toByteArray())}"}]}"""
+            """{"keys":[{"kid":"apple-jwk-id","kty":"RSA","n":"${base64Unsigned(
+                key.modulus.toByteArray(),
+            )}","e":"${base64Unsigned(key.publicExponent.toByteArray())}"}]}"""
 
         private fun base64Unsigned(bytes: ByteArray): String =
             Base64.getUrlEncoder().withoutPadding().encodeToString(bytes.dropWhile { it == 0.toByte() }.toByteArray())

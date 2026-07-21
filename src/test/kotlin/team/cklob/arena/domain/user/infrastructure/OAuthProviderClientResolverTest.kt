@@ -8,12 +8,17 @@ import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
 
 class OAuthProviderClientResolverTest : DescribeSpec({
     it("provider에 맞는 client를 반환한다") {
-        val client = object : OAuthProviderClient {
-            override val provider = OauthProvider.GOOGLE
+        val client =
+            object : OAuthProviderClient {
+                override val provider = OauthProvider.GOOGLE
 
-            override fun authenticate(authorizationCode: String?, accessToken: String?, platform: ClientPlatform, state: String?) =
-                OAuthProfile("id", null, null)
-        }
+                override fun authenticate(
+                    authorizationCode: String?,
+                    accessToken: String?,
+                    platform: ClientPlatform,
+                    state: String?,
+                ) = OAuthProfile("id", null, null)
+            }
 
         OAuthProviderClientResolver(listOf(client)).resolve(OauthProvider.GOOGLE) shouldBe client
     }

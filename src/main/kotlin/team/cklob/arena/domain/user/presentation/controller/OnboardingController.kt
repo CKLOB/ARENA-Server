@@ -22,6 +22,7 @@ class OnboardingController(
         ApiResponse(responseCode = "400", description = "유효하지 않은 입력"),
         ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 onboarding token"),
     )
-    fun execute(@Valid @RequestBody request: OnboardingRequest): TokenPair =
-        onboardingService.execute(request.onboardingToken, request.nickname, request.investmentExperience)
+    fun execute(
+        @Valid @RequestBody request: OnboardingRequest,
+    ): TokenPair = onboardingService.execute(request.onboardingToken, request.nickname, request.investmentExperience)
 }

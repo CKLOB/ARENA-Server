@@ -22,8 +22,9 @@ class RefreshTokenController(
         ApiResponse(responseCode = "200", description = "새 access/refresh token 반환"),
         ApiResponse(responseCode = "401", description = "유효하지 않거나 폐기된 refresh token"),
     )
-    fun execute(@RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String): TokenPair =
-        refreshTokenRotationService.execute(authorization.removeBearerPrefix())
+    fun execute(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
+    ): TokenPair = refreshTokenRotationService.execute(authorization.removeBearerPrefix())
 
     private fun String.removeBearerPrefix(): String =
         takeIf { startsWith("Bearer ") }?.removePrefix("Bearer ")?.takeIf { it.isNotBlank() }

@@ -1,16 +1,16 @@
 package team.cklob.arena.domain.user.infrastructure
 
-import org.springframework.http.MediaType
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import team.cklob.arena.domain.user.domain.type.ClientPlatform
 import team.cklob.arena.domain.user.domain.type.OauthProvider
-import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
 import team.cklob.arena.domain.user.infrastructure.dto.GoogleTokenResponse
 import team.cklob.arena.domain.user.infrastructure.dto.GoogleUserInfoResponse
+import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
 import team.cklob.arena.domain.user.infrastructure.property.OAuthProperties
 import team.cklob.arena.global.exception.ExpectedException
 import team.cklob.arena.global.security.SecurityErrorCode

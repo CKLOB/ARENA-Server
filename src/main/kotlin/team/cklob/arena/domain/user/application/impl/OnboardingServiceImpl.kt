@@ -26,11 +26,26 @@ class OnboardingServiceImpl(
     private val refreshTokenStore: RefreshTokenStore,
 ) : OnboardingService {
     @Transactional
-    override fun execute(onboardingToken: String, nickname: String, investmentExperience: InvestmentExperience): TokenPair {
+    override fun execute(
+        onboardingToken: String,
+        nickname: String,
+        investmentExperience: InvestmentExperience,
+    ): TokenPair {
         val subject = jwtTokenProvider.getSubject(onboardingToken, JwtPurpose.ONBOARDING)
         val (providerName, providerUserId) = subject.split(":", limit = 2)
-        val user = userRepository.save(User(nickname = nickname, investmentExperience = investmentExperience, oauthProvider = OauthProvider.valueOf(providerName), oauthProviderUserId = providerUserId))
-        val session = refreshSessionRepository.save(RefreshSession(user, "pending", LocalDateTime.now().plus(jwtProperties.refreshTokenExpiration)))
+        val user =
+            userRepository.save(
+                User(
+                    nickname = nickname,
+                    investmentExperience = investmentExperience,
+                    oauthProvider = OauthProvider.valueOf(providerName),
+                    oauthProviderUserId = providerUserId,
+                ),
+            )
+        val session =
+            refreshSessionRepository.save(
+                RefreshSession(user, "pending", LocalDateTime.now().plus(jwtProperties.refreshTokenExpiration)),
+            )
         val refreshToken = jwtTokenProvider.createRefreshToken(requireNotNull(user.id), requireNotNull(session.id))
         session.tokenHash = RefreshTokenHasher.hash(refreshToken)
         refreshTokenStore.save(requireNotNull(session.id), session.tokenHash, session.expiresAt)

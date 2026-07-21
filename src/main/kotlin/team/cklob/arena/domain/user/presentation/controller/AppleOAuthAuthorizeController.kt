@@ -25,7 +25,10 @@ class AppleOAuthAuthorizeController(
         ApiResponse(responseCode = "302", description = "Apple 인가 URL로 이동"),
         ApiResponse(responseCode = "403", description = "Apple Android 이외의 인가 요청"),
     )
-    fun execute(@PathVariable provider: String, @RequestParam platform: ClientPlatform): ResponseEntity<Void> {
+    fun execute(
+        @PathVariable provider: String,
+        @RequestParam platform: ClientPlatform,
+    ): ResponseEntity<Void> {
         if (!provider.equals(OauthProvider.APPLE.name, ignoreCase = true) || platform != ClientPlatform.ANDROID) {
             throw ExpectedException(SecurityErrorCode.FORBIDDEN)
         }

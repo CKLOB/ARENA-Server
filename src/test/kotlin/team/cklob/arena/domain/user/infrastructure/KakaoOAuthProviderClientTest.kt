@@ -22,16 +22,18 @@ class KakaoOAuthProviderClientTest : DescribeSpec({
     it("Kakao authorization code를 token과 user API로 교환한다") {
         val builder = RestClient.builder()
         val server = MockRestServiceServer.bindTo(builder).build()
-        val client = KakaoOAuthProviderClient(
-            OAuthProperties(
-                kakao = OAuthProviderProperties(
-                    clientId = "kakao-client",
-                    clientSecret = "kakao-secret",
-                    redirectUris = mapOf(ClientPlatform.WEB to "http://localhost:3000/oauth/kakao/callback"),
+        val client =
+            KakaoOAuthProviderClient(
+                OAuthProperties(
+                    kakao =
+                        OAuthProviderProperties(
+                            clientId = "kakao-client",
+                            clientSecret = "kakao-secret",
+                            redirectUris = mapOf(ClientPlatform.WEB to "http://localhost:3000/oauth/kakao/callback"),
+                        ),
                 ),
-            ),
-            builder,
-        )
+                builder,
+            )
         server.expect(ExpectedCount.once(), requestTo("https://kauth.kakao.com/oauth/token"))
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().string(containsString("client_id=kakao-client")))
@@ -41,7 +43,14 @@ class KakaoOAuthProviderClientTest : DescribeSpec({
         server.expect(ExpectedCount.once(), requestTo("https://kapi.kakao.com/v2/user/me"))
             .andExpect(method(HttpMethod.GET))
             .andExpect(header("Authorization", "Bearer kakao-access-token"))
-            .andRespond(withSuccess("""{"id":123,"kakao_account":{"email":"user@example.com","profile":{"profile_image_url":"https://example.com/profile.png"}}}""", MediaType.APPLICATION_JSON))
+            .andRespond(
+                withSuccess(
+                    """
+                    {"id":123,"kakao_account":{"email":"user@example.com","profile":{"profile_image_url":"https://example.com/profile.png"}}}
+                    """.trimIndent(),
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
 
         val profile = client.authenticate("code", null, ClientPlatform.WEB)
 

@@ -7,9 +7,9 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import team.cklob.arena.domain.user.domain.type.ClientPlatform
 import team.cklob.arena.domain.user.domain.type.OauthProvider
-import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
 import team.cklob.arena.domain.user.infrastructure.dto.KakaoTokenResponse
 import team.cklob.arena.domain.user.infrastructure.dto.KakaoUserInfoResponse
+import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
 import team.cklob.arena.domain.user.infrastructure.property.OAuthProperties
 import team.cklob.arena.global.exception.ExpectedException
 import team.cklob.arena.global.security.SecurityErrorCode
@@ -34,10 +34,15 @@ class KakaoOAuthProviderClient(
             throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
         }
 
-    private fun exchangeAuthorizationCode(authorizationCode: String?, platform: ClientPlatform): String {
+    private fun exchangeAuthorizationCode(
+        authorizationCode: String?,
+        platform: ClientPlatform,
+    ): String {
         val code = authorizationCode?.takeIf(String::isNotBlank) ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
         val kakao = properties.kakao
-        val redirectUri = kakao.redirectUris[platform]?.takeIf(String::isNotBlank) ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
+        val redirectUri =
+            kakao.redirectUris[platform]?.takeIf(String::isNotBlank)
+                ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
         return restClientBuilder
             .build()
             .post()
@@ -58,14 +63,15 @@ class KakaoOAuthProviderClient(
     }
 
     private fun getProfile(accessToken: String): OAuthProfile {
-        val profile = restClientBuilder
-            .build()
-            .get()
-            .uri(USER_INFO_URI)
-            .headers { it.setBearerAuth(accessToken) }
-            .retrieve()
-            .body(KakaoUserInfoResponse::class.java)
-            ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
+        val profile =
+            restClientBuilder
+                .build()
+                .get()
+                .uri(USER_INFO_URI)
+                .headers { it.setBearerAuth(accessToken) }
+                .retrieve()
+                .body(KakaoUserInfoResponse::class.java)
+                ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
         return OAuthProfile(profile.id.toString(), profile.account?.email, profile.account?.profile?.imageUrl)
     }
 
