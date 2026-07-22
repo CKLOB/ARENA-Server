@@ -32,7 +32,7 @@ class RefreshSessionRepositoryTest(
                             oauthProviderUserId = UUID.randomUUID().toString(),
                         ),
                     )
-                val expiresAt = LocalDateTime.now().plusDays(14)
+                val expiresAt = LocalDateTime.of(2026, 8, 5, 12, 0)
                 val tokenHash = RefreshTokenHasher.hash("refresh-token")
                 val session =
                     refreshSessionRepository.save(
