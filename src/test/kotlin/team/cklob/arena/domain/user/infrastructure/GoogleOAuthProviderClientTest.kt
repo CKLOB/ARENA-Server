@@ -40,13 +40,18 @@ class GoogleOAuthProviderClientTest : DescribeSpec({
             .andExpect(content().string(containsString("code=code")))
             .andExpect(content().string(containsString("client_id=google-client")))
             .andExpect(content().string(containsString("redirect_uri=https%3A%2F%2Fweb.example.com%2Foauth%2Fgoogle")))
-            .andRespond(withSuccess("""{"access_token":"google-access-token"}""", MediaType.APPLICATION_JSON))
+            .andRespond(
+                withSuccess(
+                    """{"access_token":"google-access-token","token_type":"Bearer","expires_in":3600,"scope":"openid email"}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
         server.expect(ExpectedCount.once(), requestTo("https://openidconnect.googleapis.com/v1/userinfo"))
             .andExpect(method(HttpMethod.GET))
             .andExpect(header("Authorization", "Bearer google-access-token"))
             .andRespond(
                 withSuccess(
-                    """{"sub":"google-user-id","email":"user@example.com","picture":"https://example.com/profile.png"}""",
+                    """{"sub":"google-user-id","email":"user@example.com","picture":"https://example.com/profile.png","locale":"ko"}""",
                     MediaType.APPLICATION_JSON,
                 ),
             )

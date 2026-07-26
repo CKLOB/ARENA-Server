@@ -18,7 +18,6 @@ import team.cklob.arena.global.security.JwtTokenProvider
 import team.cklob.arena.global.security.RefreshTokenHasher
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.Optional
 
 class RefreshTokenRotationServiceTest : DescribeSpec({
     val repository = mockk<RefreshSessionRepository>()
@@ -52,7 +51,7 @@ class RefreshTokenRotationServiceTest : DescribeSpec({
         val session = RefreshSession(user, RefreshTokenHasher.hash(currentToken), LocalDateTime.now().plusDays(1)).apply { id = 10L }
         val newSession = slot<RefreshSession>()
 
-        every { repository.findById(10L) } returns Optional.of(session)
+        every { repository.findByIdForUpdate(10L) } returns session
         every { repository.save(capture(newSession)) } answers { newSession.captured.apply { id = 11L } }
         every { refreshTokenStore.findTokenHash(10L) } returns RefreshTokenHasher.hash(currentToken)
 
@@ -83,7 +82,7 @@ class RefreshTokenRotationServiceTest : DescribeSpec({
                 LocalDateTime.now(),
             ).apply { id = 20L }
 
-        every { repository.findById(20L) } returns Optional.of(session)
+        every { repository.findByIdForUpdate(20L) } returns session
 
         val exception = runCatching { service.execute(token) }.exceptionOrNull()
 

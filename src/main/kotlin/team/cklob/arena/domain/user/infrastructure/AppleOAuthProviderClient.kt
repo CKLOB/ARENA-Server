@@ -46,7 +46,12 @@ class AppleOAuthProviderClient(
             val apple = properties.apple
             val code = authorizationCode?.takeIf(String::isNotBlank) ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
             val clientId = apple.clientId(platform)
-            val redirectUri = apple.androidRedirectUri.takeIf(String::isNotBlank)
+            val redirectUri =
+                if (platform == ClientPlatform.ANDROID) {
+                    apple.androidRedirectUri.takeIf(String::isNotBlank)
+                } else {
+                    null
+                }
             val verifier =
                 if (platform == ClientPlatform.ANDROID) {
                     state?.let(stateStore::consume)

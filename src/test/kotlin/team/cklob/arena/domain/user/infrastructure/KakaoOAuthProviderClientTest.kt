@@ -39,14 +39,21 @@ class KakaoOAuthProviderClientTest : DescribeSpec({
             .andExpect(content().string(containsString("client_id=kakao-client")))
             .andExpect(content().string(containsString("client_secret=kakao-secret")))
             .andExpect(content().string(containsString("redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Foauth%2Fkakao%2Fcallback")))
-            .andRespond(withSuccess("""{"access_token":"kakao-access-token"}""", MediaType.APPLICATION_JSON))
+            .andRespond(
+                withSuccess(
+                    """
+                    {"access_token":"kakao-access-token","token_type":"bearer","expires_in":21599,"scope":"profile_image account_email"}
+                    """.trimIndent(),
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
         server.expect(ExpectedCount.once(), requestTo("https://kapi.kakao.com/v2/user/me"))
             .andExpect(method(HttpMethod.GET))
             .andExpect(header("Authorization", "Bearer kakao-access-token"))
             .andRespond(
                 withSuccess(
                     """
-                    {"id":123,"kakao_account":{"email":"user@example.com","profile":{"profile_image_url":"https://example.com/profile.png"}}}
+                    {"id":123,"connected_at":"2026-01-01T00:00:00Z","kakao_account":{"email":"user@example.com","is_email_valid":true,"profile":{"profile_image_url":"https://example.com/profile.png","thumbnail_image_url":"https://example.com/thumb.png"}}}
                     """.trimIndent(),
                     MediaType.APPLICATION_JSON,
                 ),

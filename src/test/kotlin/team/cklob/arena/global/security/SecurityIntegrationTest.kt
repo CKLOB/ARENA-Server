@@ -40,6 +40,9 @@ import team.cklob.arena.global.exception.ExpectedException
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest(
     properties = [
@@ -275,6 +278,47 @@ class SecurityIntegrationTest(
                 }
 
                 (refreshSessionRepository.findById(requireNotNull(session.id)).orElseThrow().revokedAt != null) shouldBe true
+            }
+
+            it("동일 refresh token 동시 재발급은 한 요청만 성공한다") {
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "arena",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
+                val session = refreshSessionRepository.save(RefreshSession(user, "pending-concurrent", LocalDateTime.now().plusDays(1)))
+                val refreshToken = jwtTokenProvider.createRefreshToken(requireNotNull(user.id), requireNotNull(session.id))
+                session.tokenHash = RefreshTokenHasher.hash(refreshToken)
+                refreshSessionRepository.save(session)
+                val ready = CountDownLatch(2)
+                val start = CountDownLatch(1)
+                val executor = Executors.newFixedThreadPool(2)
+
+                try {
+                    val requests =
+                        List(2) {
+                            executor.submit<Int> {
+                                ready.countDown()
+                                start.await()
+                                mockMvc
+                                    .post("/auth/refresh") {
+                                        header("Authorization", "Bearer $refreshToken")
+                                    }.andReturn()
+                                    .response
+                                    .status
+                            }
+                        }
+                    ready.await(5, TimeUnit.SECONDS) shouldBe true
+                    start.countDown()
+
+                    requests.map { it.get(5, TimeUnit.SECONDS) }.sorted() shouldBe listOf(200, 401)
+                } finally {
+                    executor.shutdownNow()
+                }
             }
 
             it("로그아웃은 현재 refresh session만 폐기하고 204를 반환한다") {

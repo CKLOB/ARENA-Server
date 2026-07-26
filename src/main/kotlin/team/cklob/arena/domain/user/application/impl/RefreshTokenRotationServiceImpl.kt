@@ -26,7 +26,9 @@ class RefreshTokenRotationServiceImpl(
     override fun execute(refreshToken: String): TokenPair {
         val sessionId = jwtTokenProvider.getRefreshSessionId(refreshToken)
         val userId = jwtTokenProvider.getUserId(refreshToken, JwtPurpose.REFRESH)
-        val session = refreshSessionRepository.findById(sessionId).orElseThrow { ExpectedException(SecurityErrorCode.INVALID_TOKEN) }
+        val session =
+            refreshSessionRepository.findByIdForUpdate(sessionId)
+                ?: throw ExpectedException(SecurityErrorCode.INVALID_TOKEN)
         val now = LocalDateTime.now()
         val tokenHash = RefreshTokenHasher.hash(refreshToken)
         val cachedTokenHash = refreshTokenStore.findTokenHash(sessionId)
