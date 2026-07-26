@@ -14,6 +14,8 @@ class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val securityErrorHandler: SecurityErrorHandler,
 ) : OncePerRequestFilter() {
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean = request.requestURI in REFRESH_TOKEN_PATHS
+
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -47,5 +49,6 @@ class JwtAuthenticationFilter(
 
     companion object {
         private const val BEARER_PREFIX = "Bearer "
+        private val REFRESH_TOKEN_PATHS = setOf("/auth/refresh", "/auth/logout")
     }
 }

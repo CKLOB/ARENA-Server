@@ -12,4 +12,27 @@ security:
   jwt:
     # Base64-encoded secret with at least 32 bytes before encoding.
     secret: ${JWT_SECRET}
-    access-token-expiration: PT15M
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:PT15M}
+    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:P14D}
+    onboarding-token-expiration: ${JWT_ONBOARDING_TOKEN_EXPIRATION:PT10M}
+
+oauth:
+  google:
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+    client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+    redirect-uris:
+      web: ${GOOGLE_OAUTH_REDIRECT_URI_WEB:}
+      ios: ${GOOGLE_OAUTH_REDIRECT_URI_IOS:}
+      android: ${GOOGLE_OAUTH_REDIRECT_URI_ANDROID:}
+  kakao:
+    client-id: ${KAKAO_OAUTH_CLIENT_ID:}
+    client-secret: ${KAKAO_OAUTH_CLIENT_SECRET:}
+    redirect-uris:
+      web: ${KAKAO_OAUTH_REDIRECT_URI_WEB:}
+  apple:
+    ios-client-id: ${APPLE_OAUTH_IOS_CLIENT_ID:}
+    android-client-id: ${APPLE_OAUTH_ANDROID_CLIENT_ID:}
+    team-id: ${APPLE_TEAM_ID:}
+    key-id: ${APPLE_KEY_ID:}
+    private-key: ${APPLE_PRIVATE_KEY:}
+    android-redirect-uri: ${APPLE_OAUTH_ANDROID_REDIRECT_URI:}

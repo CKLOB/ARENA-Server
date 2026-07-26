@@ -43,6 +43,33 @@ Follow [ARCHITECTURE.md](ARCHITECTURE.md) for the required `domain` and `global`
 - No prefixes on PR titles
 - JPA entities are the only classes subject to `allOpen` (auto-applied by `plugin.jpa`): `@Entity`, `@MappedSuperclass`, `@Embeddable`
 
+## File and Package Structure
+
+Apply this structure to new code and refactors. Do not group unrelated API endpoints, use cases, enums, or DTOs in one file.
+
+```text
+domain/{module}
+├── presentation
+│   ├── controller       # One HTTP endpoint per controller file
+│   ├── request          # One request data class per file
+│   └── response         # One response data class per file
+├── application
+│   ├── impl             # One concrete use-case implementation per file
+│   └── result           # One application result data class per file
+├── domain
+│   ├── entity           # One JPA entity per file
+│   ├── repository       # One repository interface per file
+│   └── type             # One enum/value type per file
+└── infrastructure
+    ├── dto              # External-client data classes, one per file
+    └── property         # Configuration-property data classes, one per file
+```
+
+- Every application use case exposes an interface in `application` and its `@Service` implementation in `application.impl`.
+- The public operation of an application service is named `execute`. Give non-use-case collaborators precise names such as `findTokenHash`, `save`, or `exchangeAuthorizationCode`.
+- Keep each `data class`, enum, entity, repository interface, and controller in its own file. Place data classes in the package matching their role; do not nest them inside service or property classes.
+- Controllers validate and delegate only. Keep a controller file to one mapped API endpoint.
+
 ## Build & Run
 
 ```bash
