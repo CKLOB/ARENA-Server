@@ -21,12 +21,14 @@ class LogoutServiceImpl(
     @Transactional
     override fun execute(refreshToken: String) {
         val sessionId = jwtTokenProvider.getRefreshSessionId(refreshToken)
-        val userId = jwtTokenProvider.getUserId(refreshToken, JwtPurpose.REFRESH)
+        val identity = jwtTokenProvider.getIdentity(refreshToken, JwtPurpose.REFRESH)
         val session = refreshSessionRepository.findById(sessionId).orElseThrow { ExpectedException(SecurityErrorCode.INVALID_TOKEN) }
         val tokenHash = RefreshTokenHasher.hash(refreshToken)
         val cachedTokenHash = refreshTokenStore.findTokenHash(sessionId)
         if (
-            session.user.id != userId ||
+            session.user.id != identity.userId ||
+            session.user.authVersion != identity.authVersion ||
+            session.user.deletedAt != null ||
             session.tokenHash != tokenHash ||
             (cachedTokenHash != null && cachedTokenHash != tokenHash) ||
             session.revokedAt != null

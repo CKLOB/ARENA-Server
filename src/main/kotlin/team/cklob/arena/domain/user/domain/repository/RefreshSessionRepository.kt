@@ -10,6 +10,8 @@ import team.cklob.arena.domain.user.domain.entity.RefreshSession
 interface RefreshSessionRepository : JpaRepository<RefreshSession, Long> {
     fun findByTokenHash(tokenHash: String): RefreshSession?
 
+    fun findAllByUserIdAndRevokedAtIsNull(userId: Long): List<RefreshSession>
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select session from RefreshSession session where session.id = :id")
     fun findByIdForUpdate(

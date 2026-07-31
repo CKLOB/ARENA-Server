@@ -9,6 +9,7 @@ import team.cklob.arena.domain.user.application.impl.RefreshTokenRotationService
 import team.cklob.arena.domain.user.domain.entity.RefreshSession
 import team.cklob.arena.domain.user.domain.entity.User
 import team.cklob.arena.domain.user.domain.repository.RefreshSessionRepository
+import team.cklob.arena.domain.user.domain.repository.UserRepository
 import team.cklob.arena.domain.user.domain.type.InvestmentExperience
 import team.cklob.arena.domain.user.domain.type.OauthProvider
 import team.cklob.arena.domain.user.infrastructure.RefreshTokenStore
@@ -21,6 +22,7 @@ import java.time.LocalDateTime
 
 class RefreshTokenRotationServiceTest : DescribeSpec({
     val repository = mockk<RefreshSessionRepository>()
+    val userRepository = mockk<UserRepository>()
     val tokenProvider =
         JwtTokenProvider(
             JwtProperties(
@@ -31,6 +33,7 @@ class RefreshTokenRotationServiceTest : DescribeSpec({
     val refreshTokenStore = mockk<RefreshTokenStore>(relaxed = true)
     val service =
         RefreshTokenRotationServiceImpl(
+            userRepository,
             repository,
             tokenProvider,
             JwtProperties("MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=", Duration.ofMinutes(15)),
@@ -52,6 +55,7 @@ class RefreshTokenRotationServiceTest : DescribeSpec({
         val newSession = slot<RefreshSession>()
 
         every { repository.findByIdForUpdate(10L) } returns session
+        every { userRepository.findByIdForUpdate(1L) } returns user
         every { repository.save(capture(newSession)) } answers { newSession.captured.apply { id = 11L } }
         every { refreshTokenStore.findTokenHash(10L) } returns RefreshTokenHasher.hash(currentToken)
 
@@ -83,6 +87,7 @@ class RefreshTokenRotationServiceTest : DescribeSpec({
             ).apply { id = 20L }
 
         every { repository.findByIdForUpdate(20L) } returns session
+        every { userRepository.findByIdForUpdate(2L) } returns user
 
         val exception = runCatching { service.execute(token) }.exceptionOrNull()
 

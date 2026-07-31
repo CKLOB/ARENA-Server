@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import team.cklob.arena.domain.user.domain.repository.UserRepository
 
 @Configuration
 @EnableWebSecurity
@@ -23,6 +24,7 @@ class SecurityConfig {
         http: HttpSecurity,
         jwtTokenProvider: JwtTokenProvider,
         securityErrorHandler: SecurityErrorHandler,
+        userRepository: UserRepository,
     ): SecurityFilterChain =
         http
             .csrf { it.disable() }
@@ -41,7 +43,7 @@ class SecurityConfig {
                 ).permitAll()
                 it.anyRequest().authenticated()
             }.addFilterBefore(
-                JwtAuthenticationFilter(jwtTokenProvider, securityErrorHandler),
+                JwtAuthenticationFilter(jwtTokenProvider, securityErrorHandler, userRepository),
                 UsernamePasswordAuthenticationFilter::class.java,
             ).build()
 }

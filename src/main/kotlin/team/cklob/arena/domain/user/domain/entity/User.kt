@@ -40,6 +40,8 @@ class User(
     var oauthAccessToken: String? = null,
     @Column(name = "oauth_refresh_token", columnDefinition = "TEXT")
     var oauthRefreshToken: String? = null,
+    @Column(name = "auth_version", nullable = false)
+    var authVersion: Long = 0,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,4 +50,27 @@ class User(
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime? = null
+
+    @Column(name = "deleted_at")
+    var deletedAt: LocalDateTime? = null
+
+    fun updateProfile(
+        nickname: String?,
+        investmentExperience: InvestmentExperience?,
+        profileImageUrlIncluded: Boolean,
+        profileImageUrl: String?,
+    ) {
+        nickname?.let { this.nickname = it }
+        investmentExperience?.let { this.investmentExperience = it }
+        if (profileImageUrlIncluded) this.profileImageUrl = profileImageUrl
+    }
+
+    fun withdraw(now: LocalDateTime) {
+        deletedAt = now
+        authVersion++
+    }
+
+    fun restore() {
+        deletedAt = null
+    }
 }

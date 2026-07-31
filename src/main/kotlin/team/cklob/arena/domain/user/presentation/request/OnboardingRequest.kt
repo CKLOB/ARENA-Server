@@ -2,6 +2,7 @@ package team.cklob.arena.domain.user.presentation.request
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import team.cklob.arena.domain.user.domain.type.InvestmentExperience
 
 data class OnboardingRequest(
@@ -10,6 +11,7 @@ data class OnboardingRequest(
     val onboardingToken: String,
     @field:Schema(description = "서비스에서 사용할 닉네임", example = "arena")
     @field:NotBlank
+    @field:Size(max = 50)
     val nickname: String,
     @field:Schema(description = "투자 경험", example = "BEGINNER")
     val investmentExperience: InvestmentExperience,

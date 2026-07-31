@@ -46,9 +46,14 @@ class OnboardingServiceImpl(
             refreshSessionRepository.save(
                 RefreshSession(user, "pending", LocalDateTime.now().plus(jwtProperties.refreshTokenExpiration)),
             )
-        val refreshToken = jwtTokenProvider.createRefreshToken(requireNotNull(user.id), requireNotNull(session.id))
+        val refreshToken =
+            jwtTokenProvider.createRefreshToken(
+                requireNotNull(user.id),
+                requireNotNull(session.id),
+                user.authVersion,
+            )
         session.tokenHash = RefreshTokenHasher.hash(refreshToken)
         refreshTokenStore.save(requireNotNull(session.id), session.tokenHash, session.expiresAt)
-        return TokenPair(jwtTokenProvider.createAccessToken(requireNotNull(user.id)), refreshToken)
+        return TokenPair(jwtTokenProvider.createAccessToken(requireNotNull(user.id), user.authVersion), refreshToken)
     }
 }

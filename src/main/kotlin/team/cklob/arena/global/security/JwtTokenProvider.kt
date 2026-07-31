@@ -12,17 +12,30 @@ import javax.crypto.SecretKey
 class JwtTokenProvider(
     private val jwtProperties: JwtProperties,
 ) {
-    fun createAccessToken(userId: Long): String = createToken(userId.toString(), JwtPurpose.ACCESS, jwtProperties.accessTokenExpiration)
+    fun createAccessToken(
+        userId: Long,
+        authVersion: Long = 0,
+    ): String =
+        createToken(
+            userId.toString(),
+            JwtPurpose.ACCESS,
+            jwtProperties.accessTokenExpiration,
+            mapOf(AUTH_VERSION_CLAIM to authVersion),
+        )
 
     fun createRefreshToken(
         userId: Long,
         sessionId: Long,
+        authVersion: Long = 0,
     ): String =
         createToken(
             userId.toString(),
             JwtPurpose.REFRESH,
             jwtProperties.refreshTokenExpiration,
-            mapOf(REFRESH_SESSION_ID_CLAIM to sessionId),
+            mapOf(
+                REFRESH_SESSION_ID_CLAIM to sessionId,
+                AUTH_VERSION_CLAIM to authVersion,
+            ),
         )
 
     fun createOnboardingToken(subject: String): String =
@@ -45,6 +58,17 @@ class JwtTokenProvider(
     ): String = getClaims(token, expectedPurpose).subject
 
     fun getRefreshSessionId(token: String): Long = (getClaims(token, JwtPurpose.REFRESH)[REFRESH_SESSION_ID_CLAIM] as Number).toLong()
+
+    fun getIdentity(
+        token: String,
+        expectedPurpose: JwtPurpose,
+    ): JwtIdentity {
+        val claims = getClaims(token, expectedPurpose)
+        return JwtIdentity(
+            userId = claims.subject.toLong(),
+            authVersion = (claims[AUTH_VERSION_CLAIM] as? Number)?.toLong() ?: 0,
+        )
+    }
 
     private fun getClaims(
         token: String,
@@ -73,5 +97,6 @@ class JwtTokenProvider(
     private companion object {
         const val JWT_PURPOSE_CLAIM = "purpose"
         const val REFRESH_SESSION_ID_CLAIM = "sid"
+        const val AUTH_VERSION_CLAIM = "ver"
     }
 }

@@ -34,7 +34,7 @@ class OAuthLoginServiceTest : DescribeSpec({
         every { client.provider } returns OauthProvider.GOOGLE
         val resolver = OAuthProviderClientResolver(listOf(client))
         every { client.authenticate("code", null, ClientPlatform.WEB, null) } returns OAuthProfile("provider-id", null, null)
-        every { users.findByOauthProviderAndOauthProviderUserId(OauthProvider.GOOGLE, "provider-id") } returns null
+        every { users.findByOauthProviderAndOauthProviderUserIdForUpdate(OauthProvider.GOOGLE, "provider-id") } returns null
         val tokens = JwtTokenProvider(JwtProperties("MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=", Duration.ofMinutes(15)))
         val service =
             OAuthLoginServiceImpl(
@@ -67,7 +67,7 @@ class OAuthLoginServiceTest : DescribeSpec({
             ).apply {
                 id = 1L
             }
-        every { users.findByOauthProviderAndOauthProviderUserId(OauthProvider.KAKAO, "provider-id") } returns user
+        every { users.findByOauthProviderAndOauthProviderUserIdForUpdate(OauthProvider.KAKAO, "provider-id") } returns user
         every { sessions.save(any()) } answers { firstArg<RefreshSession>().apply { id = 1L } }
         val properties = JwtProperties("MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=", Duration.ofMinutes(15))
         val service =
@@ -92,7 +92,7 @@ class OAuthLoginServiceTest : DescribeSpec({
         val users = mockk<UserRepository>()
         every { client.provider } returns OauthProvider.APPLE
         every { client.authenticate("apple-code", null, ClientPlatform.ANDROID, "state") } returns OAuthProfile("apple-user-id", null, null)
-        every { users.findByOauthProviderAndOauthProviderUserId(OauthProvider.APPLE, "apple-user-id") } returns null
+        every { users.findByOauthProviderAndOauthProviderUserIdForUpdate(OauthProvider.APPLE, "apple-user-id") } returns null
         val properties = JwtProperties("MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=", Duration.ofMinutes(15))
         val tokens = JwtTokenProvider(properties)
         val service =
