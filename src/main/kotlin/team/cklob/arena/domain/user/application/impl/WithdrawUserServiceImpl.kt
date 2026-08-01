@@ -24,10 +24,11 @@ class WithdrawUserServiceImpl(
                 ?: throw ExpectedException(CommonErrorCode.RESOURCE_NOT_FOUND)
         val now = LocalDateTime.now()
         user.withdraw(now)
-        val sessionIds = refreshSessionRepository.findAllByUserIdAndRevokedAtIsNull(userId).map {
-            it.revoke(now)
-            requireNotNull(it.id)
-        }
+        val sessionIds =
+            refreshSessionRepository.findAllByUserIdAndRevokedAtIsNull(userId).map {
+                it.revoke(now)
+                requireNotNull(it.id)
+            }
         refreshTokenStore.deleteAll(sessionIds)
     }
 }
