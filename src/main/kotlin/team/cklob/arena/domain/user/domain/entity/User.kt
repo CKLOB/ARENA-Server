@@ -10,6 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.ColumnDefault
 import team.cklob.arena.domain.user.domain.type.InvestmentExperience
 import team.cklob.arena.domain.user.domain.type.OauthProvider
 import java.time.LocalDateTime
@@ -41,6 +42,7 @@ class User(
     @Column(name = "oauth_refresh_token", columnDefinition = "TEXT")
     var oauthRefreshToken: String? = null,
     @Column(name = "auth_version", nullable = false)
+    @ColumnDefault("0")
     var authVersion: Long = 0,
 ) {
     @Id
