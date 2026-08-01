@@ -12,4 +12,6 @@ interface RefreshTokenStore {
     fun findTokenHash(sessionId: Long): String?
 
     fun delete(sessionId: Long)
+
+    fun deleteAll(sessionIds: Collection<Long>)
 }
