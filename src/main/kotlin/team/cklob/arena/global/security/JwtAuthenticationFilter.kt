@@ -9,10 +9,12 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.OncePerRequestFilter
+import team.cklob.arena.domain.user.domain.repository.UserRepository
 
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val securityErrorHandler: SecurityErrorHandler,
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
     override fun shouldNotFilter(request: HttpServletRequest): Boolean = request.requestURI in REFRESH_TOKEN_PATHS
 
@@ -34,8 +36,12 @@ class JwtAuthenticationFilter(
         }
 
         try {
-            val userId = jwtTokenProvider.getUserId(token)
-            val authentication = UsernamePasswordAuthenticationToken(userId, null, emptyList())
+            val identity = jwtTokenProvider.getIdentity(token, JwtPurpose.ACCESS)
+            if (!userRepository.existsByIdAndDeletedAtIsNullAndAuthVersion(identity.userId, identity.authVersion)) {
+                securityErrorHandler.write(response, SecurityErrorCode.INVALID_TOKEN)
+                return
+            }
+            val authentication = UsernamePasswordAuthenticationToken(identity.userId, null, emptyList())
             SecurityContextHolder.getContext().authentication = authentication
             filterChain.doFilter(request, response)
         } catch (exception: ExpiredJwtException) {

@@ -19,7 +19,9 @@ import org.springframework.data.redis.core.ValueOperations
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -108,13 +110,22 @@ class SecurityIntegrationTest(
             }
 
             it("유효한 Bearer JWT로 보호 API를 호출할 수 있다") {
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "protected",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
                 mockMvc.get("/test/protected") {
-                    header("Authorization", "Bearer ${jwtTokenProvider.createAccessToken(1L)}")
+                    header("Authorization", "Bearer ${jwtTokenProvider.createAccessToken(requireNotNull(user.id), user.authVersion)}")
                     accept = MediaType.APPLICATION_JSON
                 }.andExpect {
                     status { isOk() }
                     jsonPath("$.code") { value("SUCCESS") }
-                    jsonPath("$.data.userId") { value(1) }
+                    jsonPath("$.data.userId") { value(user.id) }
                 }
             }
 
@@ -218,6 +229,146 @@ class SecurityIntegrationTest(
                 }
 
                 userRepository.findByOauthProviderAndOauthProviderUserId(OauthProvider.KAKAO, providerUserId)?.nickname shouldBe "arena"
+            }
+
+            it("내 프로필을 조회하고 일부 필드만 수정할 수 있다") {
+                val user =
+                    userRepository.save(
+                        User(
+                            email = "profile@example.com",
+                            nickname = "before",
+                            profileImageUrl = "https://example.com/before.png",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
+                val accessToken = jwtTokenProvider.createAccessToken(requireNotNull(user.id), user.authVersion)
+
+                mockMvc.get("/users/me") {
+                    header("Authorization", "Bearer $accessToken")
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.data.id") { value(user.id) }
+                    jsonPath("$.data.nickname") { value("before") }
+                    jsonPath("$.data.email") { value("profile@example.com") }
+                    jsonPath("$.data.profileImageUrl") { value("https://example.com/before.png") }
+                    jsonPath("$.data.investmentExperience") { value("BEGINNER") }
+                }
+
+                mockMvc.patch("/users/me") {
+                    header("Authorization", "Bearer $accessToken")
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"nickname":" after ","investmentExperience":"ADVANCED","profileImageUrl":null}"""
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.data.nickname") { value("after") }
+                    jsonPath("$.data.profileImageUrl") { value(null) }
+                    jsonPath("$.data.investmentExperience") { value("ADVANCED") }
+                }
+            }
+
+            it("빈 프로필 수정 요청은 400을 반환한다") {
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "empty-patch",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
+
+                mockMvc.patch("/users/me") {
+                    header("Authorization", "Bearer ${jwtTokenProvider.createAccessToken(requireNotNull(user.id), user.authVersion)}")
+                    contentType = MediaType.APPLICATION_JSON
+                    content = "{}"
+                }.andExpect {
+                    status { isBadRequest() }
+                    jsonPath("$.code") { value("INVALID_REQUEST") }
+                }
+            }
+
+            it("회원 탈퇴는 모든 refresh session과 기존 access token을 무효화한다") {
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "withdraw",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
+                val session1 = refreshSessionRepository.save(RefreshSession(user, "c".repeat(64), LocalDateTime.now().plusDays(1)))
+                val session2 = refreshSessionRepository.save(RefreshSession(user, "d".repeat(64), LocalDateTime.now().plusDays(1)))
+                val accessToken = jwtTokenProvider.createAccessToken(requireNotNull(user.id), user.authVersion)
+
+                mockMvc.delete("/users/me") {
+                    header("Authorization", "Bearer $accessToken")
+                }.andExpect {
+                    status { isNoContent() }
+                }
+
+                val withdrawn = userRepository.findById(requireNotNull(user.id)).orElseThrow()
+                (withdrawn.deletedAt != null) shouldBe true
+                withdrawn.authVersion shouldBe 1L
+                (refreshSessionRepository.findById(requireNotNull(session1.id)).orElseThrow().revokedAt != null) shouldBe true
+                (refreshSessionRepository.findById(requireNotNull(session2.id)).orElseThrow().revokedAt != null) shouldBe true
+
+                mockMvc.get("/users/me") {
+                    header("Authorization", "Bearer $accessToken")
+                }.andExpect {
+                    status { isUnauthorized() }
+                    jsonPath("$.code") { value("INVALID_TOKEN") }
+                }
+            }
+
+            it("OAuth 재로그인은 탈퇴 계정을 복구하지만 탈퇴 전 access token은 복구하지 않는다") {
+                val providerUserId = UUID.randomUUID().toString()
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "restore",
+                            investmentExperience = InvestmentExperience.INTERMEDIATE,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = providerUserId,
+                        ),
+                    )
+                val oldAccessToken = jwtTokenProvider.createAccessToken(requireNotNull(user.id), user.authVersion)
+
+                mockMvc.delete("/users/me") {
+                    header("Authorization", "Bearer $oldAccessToken")
+                }.andExpect {
+                    status { isNoContent() }
+                }
+
+                val response =
+                    mockMvc
+                        .post("/auth/login/GOOGLE") {
+                            contentType = MediaType.APPLICATION_JSON
+                            content = """{"authorizationCode":"$providerUserId","platform":"WEB"}"""
+                        }.andExpect {
+                            status { isOk() }
+                            jsonPath("$.data.isNewUser") { value(false) }
+                        }.andReturn()
+                val newAccessToken =
+                    com.fasterxml.jackson.module.kotlin.jacksonObjectMapper()
+                        .readTree(response.response.contentAsString)
+                        .path("data")
+                        .path("accessToken")
+                        .asText()
+
+                mockMvc.get("/users/me") {
+                    header("Authorization", "Bearer $oldAccessToken")
+                }.andExpect {
+                    status { isUnauthorized() }
+                }
+                mockMvc.get("/users/me") {
+                    header("Authorization", "Bearer $newAccessToken")
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.data.nickname") { value("restore") }
+                }
             }
 
             it("온보딩 필수 입력이 없으면 400 응답을 반환한다") {
@@ -412,6 +563,10 @@ class SecurityIntegrationTest(
                     jsonPath("$.paths['/auth/refresh'].post.responses['401']") { exists() }
                     jsonPath("$.paths['/auth/logout'].post") { exists() }
                     jsonPath("$.paths['/auth/logout'].post.responses['204']") { exists() }
+                    jsonPath("$.paths['/users/me'].get") { exists() }
+                    jsonPath("$.paths['/users/me'].patch") { exists() }
+                    jsonPath("$.paths['/users/me'].delete.responses['204']") { exists() }
+                    jsonPath("$.components.schemas.UpdateProfileRequest.properties.profileImageUrl") { exists() }
                     jsonPath("$.components.schemas.OAuthLoginRequest.properties.authorizationCode") { exists() }
                     jsonPath("$.components.schemas.OAuthLoginRequest.properties.accessToken") { exists() }
                     jsonPath("$.components.schemas.OnboardingRequest.properties.nickname") { exists() }

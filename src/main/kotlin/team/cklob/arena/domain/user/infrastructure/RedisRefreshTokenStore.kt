@@ -26,5 +26,9 @@ class RedisRefreshTokenStore(
         redisTemplate.delete(key(sessionId))
     }
 
+    override fun deleteAll(sessionIds: Collection<Long>) {
+        redisTemplate.delete(sessionIds.map(::key))
+    }
+
     private fun key(sessionId: Long) = "auth:refresh:$sessionId"
 }
