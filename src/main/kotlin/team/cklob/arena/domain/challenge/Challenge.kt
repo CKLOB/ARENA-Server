@@ -15,7 +15,7 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.springframework.data.jpa.repository.JpaRepository
-import team.cklob.arena.domain.market.MarketType
+import team.cklob.arena.domain.market.domain.type.MarketType
 import team.cklob.arena.domain.user.domain.entity.User
 import java.math.BigDecimal
 import java.time.LocalDateTime

@@ -15,7 +15,7 @@ import jakarta.persistence.Table
 import org.hibernate.annotations.CreationTimestamp
 import org.springframework.data.jpa.repository.JpaRepository
 import team.cklob.arena.domain.challenge.Challenge
-import team.cklob.arena.domain.market.Symbol
+import team.cklob.arena.domain.market.domain.entity.Symbol
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
