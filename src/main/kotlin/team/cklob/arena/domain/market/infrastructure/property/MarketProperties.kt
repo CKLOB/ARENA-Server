@@ -14,4 +14,5 @@ data class MarketProperties(
         ),
     val historyTtl: Duration = Duration.ofMinutes(15),
     val historyMaxDays: Long = 7,
+    val symbolSyncMaxDeactivationRatio: Double = 0.2,
 )

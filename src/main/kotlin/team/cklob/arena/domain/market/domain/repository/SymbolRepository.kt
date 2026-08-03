@@ -20,8 +20,8 @@ interface SymbolRepository : JpaRepository<Symbol, Long> {
         FROM Symbol symbol
         WHERE symbol.market = :market
           AND symbol.isActive = true
-          AND (LOWER(symbol.code) LIKE LOWER(CONCAT('%', :keyword, '%'))
-            OR LOWER(symbol.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (LOWER(symbol.code) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\'
+            OR LOWER(symbol.name) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\')
         """,
     )
     fun searchActive(

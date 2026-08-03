@@ -23,7 +23,7 @@ class GetCurrentPriceServiceImplTest : DescribeSpec({
     val symbolRepository = mockk<SymbolRepository>()
     val cache = mockk<MarketDataCache>(relaxed = true)
     val client = mockk<MarketDataClient>()
-    val service = GetCurrentPriceServiceImpl(symbolRepository, cache, client, MarketProperties())
+    val service = GetCurrentPriceServiceImpl(MarketValidator(symbolRepository, MarketProperties()), cache, client)
     val symbol = Symbol(MarketType.US, "AAPL", "Apple Inc").apply { id = 1L }
     val cached = CurrentPriceResult(1L, BigDecimal("220.10"), Instant.parse("2026-08-02T09:00:00Z"))
 

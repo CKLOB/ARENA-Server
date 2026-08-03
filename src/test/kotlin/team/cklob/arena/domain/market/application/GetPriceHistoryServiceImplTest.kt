@@ -24,7 +24,7 @@ class GetPriceHistoryServiceImplTest : DescribeSpec({
     val symbolRepository = mockk<SymbolRepository>()
     val cache = mockk<MarketDataCache>(relaxed = true)
     val client = mockk<MarketDataClient>()
-    val service = GetPriceHistoryServiceImpl(symbolRepository, cache, client, MarketProperties())
+    val service = GetPriceHistoryServiceImpl(MarketValidator(symbolRepository, MarketProperties()), cache, client, MarketProperties())
     val symbol = Symbol(MarketType.COIN, "BTC/USD", "Bitcoin").apply { id = 1L }
     val from = LocalDate.of(2026, 7, 27)
     val to = LocalDate.of(2026, 8, 2)

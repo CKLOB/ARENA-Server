@@ -1,5 +1,6 @@
 package team.cklob.arena.domain.market.application
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
@@ -8,18 +9,27 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.support.TransactionTemplate
+import team.cklob.arena.domain.market.MarketErrorCode
 import team.cklob.arena.domain.market.application.impl.SyncSymbolsServiceImpl
 import team.cklob.arena.domain.market.application.result.ExternalSymbolResult
 import team.cklob.arena.domain.market.domain.entity.Symbol
 import team.cklob.arena.domain.market.domain.repository.SymbolRepository
 import team.cklob.arena.domain.market.domain.type.MarketType
+import team.cklob.arena.domain.market.infrastructure.property.MarketProperties
+import team.cklob.arena.global.exception.ExpectedException
 import java.util.function.Consumer
 
 class SyncSymbolsServiceImplTest : DescribeSpec({
     val client = mockk<MarketDataClient>()
     val repository = mockk<SymbolRepository>(relaxed = true)
     val transactionTemplate = mockk<TransactionTemplate>()
-    val service = SyncSymbolsServiceImpl(client, repository, transactionTemplate)
+    val service =
+        SyncSymbolsServiceImpl(
+            client,
+            repository,
+            transactionTemplate,
+            MarketProperties(symbolSyncMaxDeactivationRatio = 1.0),
+        )
 
     beforeEach {
         clearMocks(client, repository, transactionTemplate)
@@ -54,5 +64,26 @@ class SyncSymbolsServiceImplTest : DescribeSpec({
         runCatching(service::execute)
 
         verify(exactly = 0) { transactionTemplate.executeWithoutResult(any()) }
+    }
+
+    it("불완전한 응답이 활성 종목의 허용 비율을 초과해 누락시키면 동기화를 거절한다") {
+        val apple = Symbol(MarketType.US, "AAPL", "Apple Inc")
+        val microsoft = Symbol(MarketType.US, "MSFT", "Microsoft Corporation")
+        val bitcoin = Symbol(MarketType.COIN, "BTC/USD", "Bitcoin")
+        val ethereum = Symbol(MarketType.COIN, "ETH/USD", "Ethereum")
+        every { client.fetchSymbols() } returns
+            listOf(
+                ExternalSymbolResult(MarketType.US, "AAPL", "Apple Inc"),
+                ExternalSymbolResult(MarketType.COIN, "BTC/USD", "Bitcoin"),
+            )
+        every { repository.findAllByMarket(MarketType.US) } returns listOf(apple, microsoft)
+        every { repository.findAllByMarket(MarketType.COIN) } returns listOf(bitcoin, ethereum)
+        val guardedService = SyncSymbolsServiceImpl(client, repository, transactionTemplate, MarketProperties())
+
+        shouldThrow<ExpectedException> { guardedService.execute() }.errorCode shouldBe MarketErrorCode.SYMBOL_SYNC_REJECTED
+
+        microsoft.isActive shouldBe true
+        ethereum.isActive shouldBe true
+        verify(exactly = 0) { repository.save(any<Symbol>()) }
     }
 })

@@ -44,6 +44,7 @@ market:
     COIN: PT15S
   history-ttl: PT15M
   history-max-days: 7
+  symbol-sync-max-deactivation-ratio: ${MARKET_SYMBOL_SYNC_MAX_DEACTIVATION_RATIO:0.2}
   sync:
     cron: ${MARKET_SYMBOL_SYNC_CRON:0 0 4 * * *}
     zone: ${MARKET_SYMBOL_SYNC_ZONE:Asia/Seoul}

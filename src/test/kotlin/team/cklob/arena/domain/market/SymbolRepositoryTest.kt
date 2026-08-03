@@ -43,6 +43,14 @@ class SymbolRepositoryTest(
 
             result.content.map(Symbol::code) shouldBe listOf("MSFT")
         }
+
+        it("LIKE 와일드카드를 일반 문자로 검색한다") {
+            symbolRepository.save(Symbol(MarketType.US, "A_PL", "Literal underscore"))
+
+            val result = symbolRepository.searchActive(MarketType.US, "A\\_PL", PageRequest.of(0, 10))
+
+            result.content.map(Symbol::code) shouldBe listOf("A_PL")
+        }
     }) {
     override fun extensions() = listOf(SpringExtension)
 }
