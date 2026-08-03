@@ -36,3 +36,23 @@ oauth:
     key-id: ${APPLE_KEY_ID:}
     private-key: ${APPLE_PRIVATE_KEY:}
     android-redirect-uri: ${APPLE_OAUTH_ANDROID_REDIRECT_URI:}
+
+market:
+  active-markets: US,COIN
+  quote-ttl:
+    US: PT1M
+    COIN: PT15S
+  history-ttl: PT15M
+  history-max-days: 7
+  symbol-sync-max-deactivation-ratio: ${MARKET_SYMBOL_SYNC_MAX_DEACTIVATION_RATIO:0.2}
+  sync:
+    cron: ${MARKET_SYMBOL_SYNC_CRON:0 0 4 * * *}
+    zone: ${MARKET_SYMBOL_SYNC_ZONE:Asia/Seoul}
+
+external:
+  twelve-data:
+    enabled: ${TWELVE_DATA_ENABLED:false}
+    base-url: ${TWELVE_DATA_BASE_URL:https://api.twelvedata.com}
+    api-key: ${TWELVE_DATA_API_KEY:}
+    connect-timeout: PT2S
+    read-timeout: PT4S
