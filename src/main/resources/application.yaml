@@ -56,3 +56,10 @@ external:
     api-key: ${TWELVE_DATA_API_KEY:}
     connect-timeout: PT2S
     read-timeout: PT4S
+  observability:
+    ai-base-url: ${AI_SERVICE_BASE_URL:}
+    ai-api-key: ${AI_SERVICE_API_KEY:}
+    n8n-retrain-url: ${N8N_RETRAIN_URL:}
+    n8n-api-key: ${N8N_API_KEY:}
+    connect-timeout: ${OBSERVABILITY_CONNECT_TIMEOUT:PT2S}
+    read-timeout: ${OBSERVABILITY_READ_TIMEOUT:PT10S}

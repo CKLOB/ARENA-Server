@@ -29,10 +29,10 @@ interface UserRepository : JpaRepository<User, Long> {
 
     fun findByIdAndDeletedAtIsNull(id: Long): User?
 
-    fun existsByIdAndDeletedAtIsNullAndAuthVersion(
+    fun findByIdAndDeletedAtIsNullAndAuthVersion(
         id: Long,
         authVersion: Long,
-    ): Boolean
+    ): User?
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select user from User user where user.id = :id")

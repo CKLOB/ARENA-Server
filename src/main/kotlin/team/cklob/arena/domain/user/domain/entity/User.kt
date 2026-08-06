@@ -13,6 +13,7 @@ import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.CreationTimestamp
 import team.cklob.arena.domain.user.domain.type.InvestmentExperience
 import team.cklob.arena.domain.user.domain.type.OauthProvider
+import team.cklob.arena.domain.user.domain.type.UserRole
 import java.time.LocalDateTime
 
 @Entity
@@ -44,6 +45,10 @@ class User(
     @Column(name = "auth_version", nullable = false)
     @ColumnDefault("0")
     var authVersion: Long = 0,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    @ColumnDefault("'USER'")
+    var role: UserRole = UserRole.USER,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -41,6 +41,7 @@ class SecurityConfig {
                     "/actuator/health",
                     "/error",
                 ).permitAll()
+                it.requestMatchers("/observability/**").hasRole("ADMIN")
                 it.anyRequest().authenticated()
             }.addFilterBefore(
                 JwtAuthenticationFilter(jwtTokenProvider, securityErrorHandler, userRepository),
