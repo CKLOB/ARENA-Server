@@ -35,6 +35,7 @@ import team.cklob.arena.domain.user.domain.repository.UserRepository
 import team.cklob.arena.domain.user.domain.type.ClientPlatform
 import team.cklob.arena.domain.user.domain.type.InvestmentExperience
 import team.cklob.arena.domain.user.domain.type.OauthProvider
+import team.cklob.arena.domain.user.domain.type.UserRole
 import team.cklob.arena.domain.user.infrastructure.OAuthProviderClient
 import team.cklob.arena.domain.user.infrastructure.dto.OAuthProfile
 import team.cklob.arena.global.common.RequestLoggingFilter
@@ -126,6 +127,41 @@ class SecurityIntegrationTest(
                     status { isOk() }
                     jsonPath("$.code") { value("SUCCESS") }
                     jsonPath("$.data.userId") { value(user.id) }
+                }
+            }
+
+            it("Observability API는 관리자만 호출할 수 있다") {
+                val user =
+                    userRepository.save(
+                        User(
+                            nickname = "user-role",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                        ),
+                    )
+                val admin =
+                    userRepository.save(
+                        User(
+                            nickname = "admin-role",
+                            investmentExperience = InvestmentExperience.BEGINNER,
+                            oauthProvider = OauthProvider.GOOGLE,
+                            oauthProviderUserId = UUID.randomUUID().toString(),
+                            role = UserRole.ADMIN,
+                        ),
+                    )
+
+                mockMvc.get("/observability/models") {
+                    header("Authorization", "Bearer ${jwtTokenProvider.createAccessToken(requireNotNull(user.id))}")
+                }.andExpect {
+                    status { isForbidden() }
+                    jsonPath("$.code") { value("FORBIDDEN") }
+                }
+                mockMvc.get("/observability/models") {
+                    header("Authorization", "Bearer ${jwtTokenProvider.createAccessToken(requireNotNull(admin.id))}")
+                }.andExpect {
+                    status { isOk() }
+                    jsonPath("$.data.models") { isArray() }
                 }
             }
 
