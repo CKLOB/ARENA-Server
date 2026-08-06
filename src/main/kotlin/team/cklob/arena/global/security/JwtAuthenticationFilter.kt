@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.OncePerRequestFilter
 import team.cklob.arena.domain.user.domain.repository.UserRepository
@@ -37,11 +38,17 @@ class JwtAuthenticationFilter(
 
         try {
             val identity = jwtTokenProvider.getIdentity(token, JwtPurpose.ACCESS)
-            if (!userRepository.existsByIdAndDeletedAtIsNullAndAuthVersion(identity.userId, identity.authVersion)) {
+            val user = userRepository.findByIdAndDeletedAtIsNullAndAuthVersion(identity.userId, identity.authVersion)
+            if (user == null) {
                 securityErrorHandler.write(response, SecurityErrorCode.INVALID_TOKEN)
                 return
             }
-            val authentication = UsernamePasswordAuthenticationToken(identity.userId, null, emptyList())
+            val authentication =
+                UsernamePasswordAuthenticationToken(
+                    identity.userId,
+                    null,
+                    listOf(SimpleGrantedAuthority("ROLE_${user.role.name}")),
+                )
             SecurityContextHolder.getContext().authentication = authentication
             filterChain.doFilter(request, response)
         } catch (exception: ExpiredJwtException) {
